@@ -1,4 +1,3 @@
-// src/config/db.js
 const { Pool } = require('pg');
 
 // Crear una nueva instancia de Pool y configurarla
@@ -21,7 +20,15 @@ const connectToDatabase = async () => {
     }
 };
 
+// Obtener un cliente del pool para manejar transacciones
+const getClient = async () => {
+    const client = await pool.connect();
+    return client;
+};
+
+// Exportar las funciones
 module.exports = {
     connectToDatabase,
-    query: (text, params) => pool.query(text, params),
+    query: (text, params) => pool.query(text, params), // Consulta directa sin transacción
+    getClient, // Obtener un cliente para transacciones
 };
