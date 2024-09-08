@@ -1,0 +1,11 @@
+# Dependencias de Node JS
+node_modules/
+
+# Archivos de log
+*.log
+
+# Archivos de entorno
+.env
+
+# Carpeta de buid
+dist/
