@@ -47,7 +47,7 @@ const addCamera = async (req, res) => {
     });
   } catch (error) {
     await client.query("ROLLBACK");
-    res.status(500).json({
+    res.status(409).json({
       message: "Error adding a new camera",
       error: error.message,
       errorCode: error.code,
