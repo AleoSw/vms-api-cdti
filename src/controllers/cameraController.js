@@ -43,8 +43,7 @@ const addCamera = async (req, res) => {
     res.status(201).json({
       message: "Camera added successfully",
       sector: sector.name,
-      cameraName: camera.name,
-      ok: true,
+      cameraName: camera.name
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -52,7 +51,6 @@ const addCamera = async (req, res) => {
       message: "Error adding a new camera",
       error: error.message,
       errorCode: error.code,
-      ok: false,
     });
   } finally {
     client.release();
@@ -86,8 +84,7 @@ const removeCamera = async (req, res) => {
 
     res.status(200).json({
       message: "Camera removed successfully",
-      removedCamera: cameraName,
-      ok: true,
+      removedCamera: cameraName
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -95,8 +92,7 @@ const removeCamera = async (req, res) => {
       message:
         error.message === "Camera not found"
           ? "Camera not found"
-          : "Error removing camera",
-      ok: false,
+          : "Error removing camera"
     });
   } finally {
     client.release();
@@ -108,21 +104,16 @@ const getCameras = async (req, res) => {
 
   try {
     const allCameras = await client.query(
-      `SELECT s.name AS sector_name, c.name AS camera_name
-       FROM cameras c
-       JOIN sectors_cameras sc ON c.id = sc.camera_id
-       JOIN sectors s ON sc.sector_id = s.id;`
+      `SELECT * FROM cameras`
     );
 
     res.status(200).json({
-      ok: true,
       cameras: (allCameras.rowCount > 0 ? allCameras.rows : {}),
     });
   } catch (error) {
     res.status(500).json({
       message: "Error fetching cameras",
-      error: error.message,
-      ok: false,
+      error: error.message
     });
   } finally {
     client.release();

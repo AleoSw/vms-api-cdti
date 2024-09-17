@@ -28,8 +28,7 @@ const register = async (req, res) => {
     res.status(201).json({
         message: "User created successfully",
         userCreated: document,
-        rol: "Monitor",
-        ok: true
+        rol: "Monitor",        
     })
   } catch (error) {
     await client.query('ROLLBACK');
@@ -37,7 +36,6 @@ const register = async (req, res) => {
         message: "Error creating a new user",
         error: error.message,
         errorCode: error.code,
-        ok: false
     })
   } finally {
     await client.release()
@@ -64,8 +62,7 @@ const login = async (req, res) => {
     } catch (error) {
       // Maneja los errores, incluyendo el caso de credenciales inválidas
       res.status(error.message === "Invalid credentials" ? 401 : 500).json({
-        message: error.message === "Invalid credentials" ? "Invalid credentials" : "Error logging in",
-        ok: false
+        message: error.message === "Invalid credentials" ? "Invalid credentials" : error.message,
       });
     }
   };

@@ -13,7 +13,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use("/auth", authRoutes);
-app.use("/settings", settingsRoutes);
+app.use("/s", settingsRoutes);
 
 const PORT = process.env.PORT || 4000;
 

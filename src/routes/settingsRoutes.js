@@ -1,13 +1,16 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/authMiddleware");
-const settingsControllers = require("../controllers/settingsController")
+const cameraController = require("../controllers/cameraController")
+const sectorController = require("../controllers/sectorController")
 const router = express.Router();
-const { getClient } = require("../config/db");
 
-// Ruta protegida
-router.post("/camera/add", authMiddleware, settingsControllers.addCamera);
-router.delete("/camera/remove/:name", authMiddleware, settingsControllers.removeCamera);
-router.get("/camera/all", authMiddleware, settingsControllers.getCameras);
+// Rutas camara
+router.post("/camera/add", authMiddleware, cameraController.addCamera);
+router.delete("/camera/remove/:name", authMiddleware, cameraController.removeCamera);
+router.get("/camera/all", authMiddleware, cameraController.getCameras);
+
+// Rutas sector
+router.get("/sector/all", authMiddleware, sectorController.getSectors);
 
 
 module.exports = router;
