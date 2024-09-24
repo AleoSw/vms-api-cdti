@@ -108,7 +108,7 @@ const getCameras = async (req, res) => {
     );
 
     res.status(200).json({
-      cameras: (allCameras.rowCount > 0 ? allCameras.rows : {}),
+      cameras: (allCameras.rowCount > 0 ? allCameras.rows : []),
     });
   } catch (error) {
     res.status(500).json({

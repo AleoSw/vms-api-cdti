@@ -9,7 +9,7 @@ const getRoles = async (req, res) => {
         )
 
         return res.status(200).json({
-            roles: (rolesResult.rowCount > 0 ? rolesResult.rows : {})
+            roles: (rolesResult.rowCount > 0 ? rolesResult.rows : [])
         });
     } catch (error) {
         res.status(500).json({

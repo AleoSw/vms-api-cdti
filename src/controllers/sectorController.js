@@ -8,7 +8,7 @@ const getSectors = async (req, res) => {
     const allSectors = await client.query("SELECT * FROM sectors");
 
     res.status(200).json({
-      sectors: allSectors.rowCount > 0 ? allSectors.rows : {},
+      sectors: allSectors.rowCount > 0 ? allSectors.rows : []
     });
   } catch (error) {
     res.status(500).json({
