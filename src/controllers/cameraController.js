@@ -1,6 +1,58 @@
 const { getClient } = require("../config/db");
-const Camera = require('../models/Camera'); // Asegúrate de que la ruta sea correcta
-const Sector = require('../models/Sector'); // Asegúrate de que la ruta sea correcta
+const Camera = require("../models/Camera"); // Asegúrate de que la ruta sea correcta
+const Sector = require("../models/Sector"); // Asegúrate de que la ruta sea correcta
+
+const getCameraByName = async (req, res) => {
+  const { name } = req.params;
+  const client = await getClient();
+
+  try {
+    const cameraResult = await client.query(
+      "SELECT * FROM cameras WHERE name = $1",
+      [name]
+    );
+
+    if (cameraResult.rowCount === 0) {
+      throw new Error("Camera not found");
+    }
+
+    return res.status(200).json({
+      camera: cameraResult.rows
+    })
+  } catch (error) {
+    return res.status(404).json({
+      error: error.message
+    })
+  } finally {
+    client.release();
+  }
+};
+
+const getCameraByIp = async (req, res) => {
+  const { ip } = req.params;
+  const client = await getClient();
+
+  try {
+    const cameraResult = await client.query(
+      "SELECT * FROM cameras WHERE ip = $1",
+      [ip]
+    );
+
+    if (cameraResult.rowCount === 0) {
+      throw new Error("Camera not found");
+    }
+
+    return res.status(200).json({
+      camera: cameraResult.rows
+    })
+  } catch (error) {
+    return res.status(404).json({
+      error: error.message
+    })
+  } finally {
+    client.release();
+  }
+};
 
 const addCamera = async (req, res) => {
   const { name, ip, user_cam, password_cam, sector_name } = req.body;
@@ -43,7 +95,7 @@ const addCamera = async (req, res) => {
     res.status(201).json({
       message: "Camera added successfully",
       sector: sector.name,
-      cameraName: camera.name
+      cameraName: camera.name,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -84,7 +136,7 @@ const removeCamera = async (req, res) => {
 
     res.status(200).json({
       message: "Camera removed successfully",
-      removedCamera: cameraName
+      removedCamera: cameraName,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -92,7 +144,7 @@ const removeCamera = async (req, res) => {
       message:
         error.message === "Camera not found"
           ? "Camera not found"
-          : "Error removing camera"
+          : "Error removing camera",
     });
   } finally {
     client.release();
@@ -103,17 +155,15 @@ const getCameras = async (req, res) => {
   const client = await getClient();
 
   try {
-    const allCameras = await client.query(
-      `SELECT * FROM cameras`
-    );
+    const allCameras = await client.query(`SELECT * FROM cameras`);
 
     res.status(200).json({
-      cameras: (allCameras.rowCount > 0 ? allCameras.rows : []),
+      cameras: allCameras.rowCount > 0 ? allCameras.rows : [],
     });
   } catch (error) {
     res.status(500).json({
       message: "Error fetching cameras",
-      error: error.message
+      error: error.message,
     });
   } finally {
     client.release();
@@ -124,4 +174,6 @@ module.exports = {
   addCamera,
   removeCamera,
   getCameras,
+  getCameraByName,
+  getCameraByIp
 };

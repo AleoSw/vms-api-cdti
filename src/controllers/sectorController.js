@@ -25,7 +25,7 @@ const getSectorsCameras = async (req, res) => {
 
   try {
     const allSectorsCameras = await client.query(
-      "SELECT sc.sector_id, c.name AS camera_name, c.ip AS camera_ip FROM sectors_cameras sc JOIN cameras c ON sc.camera_id = c.id;"
+      "SELECT s.id AS sector_id, s.name AS sector_name, c.name AS camera_name, c.ip AS camera_ip, c.user_cam, c.password_cam FROM sectors s LEFT JOIN sectors_cameras sc ON s.id = sc.sector_id LEFT JOIN cameras c ON sc.camera_id = c.id;"
     );
 
     res.status(200).json({

@@ -14,6 +14,9 @@ app.use(bodyParser.json());
 
 app.use("/auth", authRoutes);
 app.use("/s", settingsRoutes);
+app.use("/test", (req, res) => {
+  res.send("API is Working!");
+})
 
 const PORT = process.env.PORT || 4000;
 
