@@ -64,13 +64,15 @@ const login = async (req, res) => {
     }
 
     const token = `Bearer ${generateToken(user.document)}`;
-    res.json({ token });
+    res.status(200).json({ token });
 
   } catch (error) {
     // Maneja los errores, incluyendo el caso de credenciales inválidas
     res.status(error.message === "Invalid credentials" ? 401 : 500).json({
       message: error.message === "Invalid credentials" ? "Invalid credentials" : error.message,
     });
+  } finally {
+    client.release();
   }
 };
 
@@ -81,17 +83,8 @@ const logout = (req, res) => {
 };
 
 const getUser = async (req, res) => {
-  const authHeader = req.headers.authorization;  
-
-  // Verificar si el encabezado de autorización está presente
-  if (!authHeader) {
-    return res.status(401).json({
-      error: "Authorization header is missing",
-    });
-  }
-
   // Extraer el token del encabezado
-  const token = authHeader.split(' ')[1];
+  const token = req.headers.authorization.split(' ')[1];
 
   // Verificar si el token está presente
   if (!token) {
@@ -99,13 +92,14 @@ const getUser = async (req, res) => {
       error: "Token is missing",
     });
   }
+  
+  const client = await getClient();
 
   try {
     const decoded = verifyToken(token);
-    const client = await getClient();
 
     const userResult = await client.query(
-      "SELECT u.id, u.document, r.name AS rol_name FROM users u JOIN users_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id WHERE document = $1",
+      "SELECT u.id, u.document, r.name AS role_name FROM users u JOIN users_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id WHERE document = $1",
       [decoded.document]
     )
 
@@ -116,12 +110,36 @@ const getUser = async (req, res) => {
     return res.status(401).json({
       error: "Token is invalid or expired"
     });
+  } finally {
+    client.release();
   }
 };
+
+const getUsers = async (req, res) => {
+  const client = await getClient();
+  try {
+
+    const usersResult = await client.query(
+      "SELECT u.id, u.document, u.password, r.name AS role_name FROM users u JOIN users_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id"
+    )
+
+    return res.json({
+      users: usersResult.rowCount > 0 ? usersResult.rows : []
+    });
+
+  } catch (error) {
+    return res.status(401).json({
+      error: "Token is invalid or expired"
+    });
+  } finally {
+    client.release();
+  }
+}
 
 module.exports = {
   register,
   login,
   logout,
-  getUser
+  getUser,
+  getUsers
 };

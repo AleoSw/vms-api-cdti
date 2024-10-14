@@ -8,7 +8,7 @@ const getCameraByName = async (req, res) => {
 
   try {
     const cameraResult = await client.query(
-      "SELECT * FROM cameras WHERE name = $1",
+      "SELECT c.*, s.name AS sector_name FROM cameras c JOIN sectors_cameras sc ON c.id = sc.camera_id JOIN sectors s ON sc.sector_id = s.id WHERE c.name = $1",
       [name]
     );
 
@@ -27,6 +27,69 @@ const getCameraByName = async (req, res) => {
     client.release();
   }
 };
+
+const updateCamera = async (req, res) => {
+  const { prevName } = req.params; // Nombre de la cámara para buscarla
+  const { name, ip, user_cam, password_cam, sector_name } = req.body; // Nuevos datos para actualizar
+  const client = await getClient();
+
+  try {
+    await client.query("BEGIN");
+
+    const cameraIdResult = await client.query(
+      "SELECT id FROM cameras WHERE name = $1",
+      [prevName]
+    )    
+    console.log(prevName);
+    
+    const cameraId = cameraIdResult.rows[0].id;
+
+    // Actualiza la información de la cámara y obtiene la ID de la cámara
+    const updateCameraQuery = `
+      UPDATE cameras
+      SET 
+        name = $1,
+        ip = $2,
+        user_cam = $3,
+        password_cam = $4
+      WHERE name = $5
+    `;
+
+    const cameraResult = await client.query(updateCameraQuery, [name, ip, user_cam, password_cam, prevName]);
+    
+    // Consultar el ID del sector a partir del nombre
+    const sectorIdResult = await client.query(`
+      SELECT id FROM sectors WHERE name = $1
+    `, [sector_name]);
+
+    // Verificar si se encontró el sector
+    if (sectorIdResult.rows.length > 0) {
+      const sectorId = sectorIdResult.rows[0].id;
+
+      // Actualizar la relación en sectors_cameras usando la ID de la cámara
+      await client.query(`
+        UPDATE sectors_cameras 
+        SET sector_id = $1 
+        WHERE camera_id = $2
+      `, [sectorId, cameraId]);
+
+    } else {
+      console.error(`Sector con nombre '${sector_name}' no encontrado.`);
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: `Sector '${sector_name}' no encontrado.` });
+    }
+
+    await client.query("COMMIT");
+    res.status(200).json({ message: "Cámara actualizada exitosamente.", cameraName: name });
+  } catch (error) {
+    console.error("Error al actualizar la cámara:", error);
+    await client.query("ROLLBACK");
+    res.status(500).json({ message: "Error al actualizar la cámara." });
+  } finally {
+    client.release();
+  }
+}
+
 
 const getCameraByIp = async (req, res) => {
   const { ip } = req.params;
@@ -155,7 +218,7 @@ const getCameras = async (req, res) => {
   const client = await getClient();
 
   try {
-    const allCameras = await client.query(`SELECT * FROM cameras`);
+    const allCameras = await client.query(`SELECT c.*, s.name AS sector_name FROM cameras c JOIN sectors_cameras sc ON c.id = sc.camera_id JOIN sectors s ON sc.sector_id = s.id`);
 
     res.status(200).json({
       cameras: allCameras.rowCount > 0 ? allCameras.rows : [],
@@ -175,5 +238,6 @@ module.exports = {
   removeCamera,
   getCameras,
   getCameraByName,
-  getCameraByIp
+  getCameraByIp,
+  updateCamera
 };

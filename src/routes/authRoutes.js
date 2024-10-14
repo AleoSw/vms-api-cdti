@@ -10,5 +10,6 @@ const authController = require('../controllers/authController');
 router.post('/register', authMiddleware, authController.register); // Registro
 router.post('/login', authController.login); // Inicio de sesión
 router.get('/user', authMiddleware, authController.getUser);
+router.get('/user/all', authMiddleware, authController.getUsers);
 
 module.exports = router;

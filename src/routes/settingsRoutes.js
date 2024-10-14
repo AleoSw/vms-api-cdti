@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Rutas camara
 router.post("/camera/add", authMiddleware, cameraController.addCamera);
+router.put("/camera/update/:prevName", authMiddleware, cameraController.updateCamera)
 router.delete("/camera/remove/:name", authMiddleware, cameraController.removeCamera);
 router.get("/camera/all", cameraController.getCameras);
 router.get("/camera/:ip", cameraController.getCameraByIp);
